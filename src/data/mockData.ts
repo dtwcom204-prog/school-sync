@@ -1,11 +1,10 @@
 import { Assignment, AnnouncementItem, SubjectGrade, TimetablePeriod, UserProfile, LineAlertMessage, SiteSettings } from '../types';
+import { artisticAvatars } from './artisticAvatars';
 
 import heroCampusImg from '../assets/images/hero_school_campus_1790417598348.jpg';
-import studentMaleAvatar from '../assets/images/avatar_student_male_1790417611514.jpg';
-import teacherFemaleAvatar from '../assets/images/avatar_teacher_female_1790417624905.jpg';
 import scienceFairBanner from '../assets/images/science_fair_banner_1790417636743.jpg';
 
-export { heroCampusImg, studentMaleAvatar, teacherFemaleAvatar, scienceFairBanner };
+export { heroCampusImg, scienceFairBanner };
 
 export const defaultStudent: UserProfile = {
   id: 'std-54892',
@@ -18,7 +17,7 @@ export const defaultStudent: UserProfile = {
   classroom: 'ม.5/1 (1/2567)',
   studentNumber: 14,
   gpax: 3.84,
-  avatarUrl: studentMaleAvatar,
+  avatarUrl: artisticAvatars[0].dataUrl, // Origami Cat
   lineConnected: true,
   lineNotifyToken: 'LINE-TOKEN-DTT-54892',
   googleLinked: true,
@@ -37,7 +36,7 @@ export const defaultTeacher: UserProfile = {
   role: 'teacher',
   schoolName: 'โรงเรียนดอนตาลวิทยา',
   classroom: 'ที่ปรึกษา ม.5/1 (กลุ่มสาระวิทยาศาสตร์)',
-  avatarUrl: teacherFemaleAvatar,
+  avatarUrl: artisticAvatars[4].dataUrl, // Origami Fox
   lineConnected: true,
   lineNotifyToken: 'LINE-TEACHER-TOKEN-883',
   googleLinked: false,
@@ -56,7 +55,7 @@ export const defaultAdmin: UserProfile = {
   role: 'admin',
   schoolName: 'โรงเรียนดอนตาลวิทยา',
   classroom: 'กลุ่มงานบริหารสารสนเทศ ICT',
-  avatarUrl: studentMaleAvatar,
+  avatarUrl: artisticAvatars[1].dataUrl, // Origami Shiba Inu
   lineConnected: true,
   lineNotifyToken: 'LINE-ADMIN-MASTER-TOKEN',
   googleLinked: true,
@@ -81,7 +80,7 @@ export const initialSystemUsers: UserProfile[] = [
     classroom: 'ม.5/1 (1/2567)',
     studentNumber: 15,
     gpax: 3.72,
-    avatarUrl: studentMaleAvatar,
+    avatarUrl: artisticAvatars[2].dataUrl, // Origami Dragon
     lineConnected: true,
     googleLinked: false,
     googleEmail: 'kittisak.p@dontan.ac.th',
@@ -99,7 +98,7 @@ export const initialSystemUsers: UserProfile[] = [
     classroom: 'ม.5/1 (1/2567)',
     studentNumber: 16,
     gpax: 3.91,
-    avatarUrl: teacherFemaleAvatar,
+    avatarUrl: artisticAvatars[3].dataUrl, // Origami Elephant
     lineConnected: false,
     googleLinked: true,
     googleEmail: 'natthida.s@gmail.com',
@@ -115,7 +114,7 @@ export const initialSystemUsers: UserProfile[] = [
     role: 'teacher',
     schoolName: 'โรงเรียนดอนตาลวิทยา',
     classroom: 'กลุ่มสาระคณิตศาสตร์ (ม.5/1, ม.5/2)',
-    avatarUrl: teacherFemaleAvatar,
+    avatarUrl: artisticAvatars[7].dataUrl, // Origami Butterfly
     lineConnected: true,
     googleLinked: true,
     googleEmail: 'siriporn.h@dontan.ac.th',
@@ -131,7 +130,7 @@ export const initialSystemUsers: UserProfile[] = [
     role: 'teacher',
     schoolName: 'โรงเรียนดอนตาลวิทยา',
     classroom: 'กลุ่มสาระภาษาต่างประเทศ (EP/IEP)',
-    avatarUrl: studentMaleAvatar,
+    avatarUrl: artisticAvatars[9].dataUrl, // Origami Unicorn
     lineConnected: false,
     googleLinked: true,
     googleEmail: 'johnathan.m@dontan.ac.th',

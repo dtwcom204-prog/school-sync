@@ -26,43 +26,12 @@ import {
   Heart,
   FileCheck
 } from 'lucide-react';
-import { 
-  studentMaleAvatar, 
-  teacherFemaleAvatar 
-} from '../data/mockData';
-
 interface EditProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
   currentUser: UserProfile;
   onSaveProfile: (updatedUser: UserProfile) => void;
 }
-
-// Preset standard photographic school avatars
-const standardSchoolAvatars = [
-  { id: 'std-m-1', url: studentMaleAvatar, label: 'นักเรียนชาย มาตรฐาน' },
-  { id: 'tch-f-1', url: teacherFemaleAvatar, label: 'ครูหญิง มาตรฐาน' },
-  { 
-    id: 'std-f-1', 
-    url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&h=300&fit=crop&crop=face', 
-    label: 'นักเรียนหญิง 1' 
-  },
-  { 
-    id: 'std-m-2', 
-    url: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=300&h=300&fit=crop&crop=face', 
-    label: 'นักเรียนชาย 2' 
-  },
-  { 
-    id: 'tch-m-1', 
-    url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop&crop=face', 
-    label: 'ครูชาย 1' 
-  },
-  { 
-    id: 'admin-p', 
-    url: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=300&h=300&fit=crop&crop=face', 
-    label: 'แอดมินระบบ' 
-  }
-];
 
 export const EditProfileModal: React.FC<EditProfileModalProps> = ({
   isOpen,
@@ -378,7 +347,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                 <button
                   type="button"
                   onClick={() => setAvatarMode('artistic')}
-                  className={`flex-1 min-w-[130px] py-2 px-3 text-xs font-semibold rounded-xl transition-all flex items-center justify-center gap-1.5 ${
+                  className={`flex-1 min-w-[140px] py-2 px-3 text-xs font-semibold rounded-xl transition-all flex items-center justify-center gap-1.5 ${
                     avatarMode === 'artistic'
                       ? 'bg-white text-[#0071E3] shadow-xs'
                       : 'text-[#6E6E73] hover:text-[#1D1D1F]'
@@ -391,7 +360,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                 <button
                   type="button"
                   onClick={() => setAvatarMode('upload')}
-                  className={`flex-1 min-w-[130px] py-2 px-3 text-xs font-semibold rounded-xl transition-all flex items-center justify-center gap-1.5 ${
+                  className={`flex-1 min-w-[140px] py-2 px-3 text-xs font-semibold rounded-xl transition-all flex items-center justify-center gap-1.5 ${
                     avatarMode === 'upload'
                       ? 'bg-white text-[#0071E3] shadow-xs'
                       : 'text-[#6E6E73] hover:text-[#1D1D1F]'
@@ -403,21 +372,8 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
 
                 <button
                   type="button"
-                  onClick={() => setAvatarMode('standard')}
-                  className={`flex-1 min-w-[110px] py-2 px-3 text-xs font-semibold rounded-xl transition-all flex items-center justify-center gap-1.5 ${
-                    avatarMode === 'standard'
-                      ? 'bg-white text-[#0071E3] shadow-xs'
-                      : 'text-[#6E6E73] hover:text-[#1D1D1F]'
-                  }`}
-                >
-                  <User className="w-3.5 h-3.5" />
-                  <span>ภาพมาตรฐาน รร.</span>
-                </button>
-
-                <button
-                  type="button"
                   onClick={() => setAvatarMode('url')}
-                  className={`flex-1 min-w-[110px] py-2 px-3 text-xs font-semibold rounded-xl transition-all flex items-center justify-center gap-1.5 ${
+                  className={`flex-1 min-w-[140px] py-2 px-3 text-xs font-semibold rounded-xl transition-all flex items-center justify-center gap-1.5 ${
                     avatarMode === 'url'
                       ? 'bg-white text-[#0071E3] shadow-xs'
                       : 'text-[#6E6E73] hover:text-[#1D1D1F]'
@@ -618,54 +574,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                 </div>
               )}
 
-              {/* Mode 3: Standard School Portraits */}
-              {avatarMode === 'standard' && (
-                <div className="space-y-3">
-                  <div>
-                    <h4 className="text-xs font-bold text-[#1D1D1F]">
-                      ภาพถ่ายบุคคลมาตรฐาน โรงเรียนดอนตาลวิทยา
-                    </h4>
-                    <p className="text-[11px] text-[#6E6E73]">
-                      ภาพชุดเครื่องแบบนักเรียนและชุดข้าราชการครู
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
-                    {standardSchoolAvatars.map((item) => (
-                      <button
-                        key={item.id}
-                        type="button"
-                        onClick={() => {
-                          setSelectedAvatar(item.url);
-                          setUploadedFileName(null);
-                        }}
-                        className={`relative p-1.5 rounded-2xl border-2 transition-all flex flex-col items-center gap-1 ${
-                          selectedAvatar === item.url
-                            ? 'border-[#0071E3] bg-blue-50/50 shadow-xs scale-105'
-                            : 'border-black/5 hover:border-black/20 bg-white'
-                        }`}
-                      >
-                        <img
-                          src={item.url}
-                          alt={item.label}
-                          referrerPolicy="no-referrer"
-                          className="w-14 h-14 sm:w-16 sm:h-16 rounded-full object-cover border border-black/5"
-                        />
-                        <span className="text-[10px] text-[#6E6E73] truncate w-full text-center">
-                          {item.label}
-                        </span>
-                        {selectedAvatar === item.url && (
-                          <span className="absolute top-1 right-1 w-5 h-5 rounded-full bg-[#0071E3] text-white flex items-center justify-center shadow-xs">
-                            <Check className="w-3 h-3" />
-                          </span>
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Mode 4: Custom Image URL / Hotlink */}
+              {/* Mode 3: Custom Image URL / Hotlink */}
               {avatarMode === 'url' && (
                 <div className="space-y-3 text-xs">
                   <div>

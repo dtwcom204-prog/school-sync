@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { UserProfile, UserRole } from '../types';
-import { studentMaleAvatar, teacherFemaleAvatar } from '../data/mockData';
+import { artisticAvatars } from '../data/artisticAvatars';
 import { playNotificationSound } from '../utils/sound';
 import { 
   Users, 
@@ -26,7 +26,9 @@ import {
   Check, 
   Copy,
   Layers,
-  ArrowRight
+  ArrowRight,
+  Edit3,
+  Palette
 } from 'lucide-react';
 
 interface UserManagementViewProps {
@@ -34,6 +36,7 @@ interface UserManagementViewProps {
   users: UserProfile[];
   onCreateSingleUser: (newUser: UserProfile) => void;
   onCreateBulkUsers: (newUsers: UserProfile[]) => void;
+  onUpdateUser: (updatedUser: UserProfile) => void;
   onDeleteUser: (userId: string) => void;
   onImpersonateUser: (user: UserProfile) => void;
 }
@@ -43,6 +46,7 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
   users,
   onCreateSingleUser,
   onCreateBulkUsers,
+  onUpdateUser,
   onDeleteUser,
   onImpersonateUser,
 }) => {
@@ -51,9 +55,11 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
   const [classFilter, setClassFilter] = useState<string>('all');
   const [visiblePasswords, setVisiblePasswords] = useState<{ [id: string]: boolean }>({});
 
-  // Modals
+  // Modals & Edit States
   const [isSingleModalOpen, setIsSingleModalOpen] = useState(false);
   const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
+  const [copiedUserId, setCopiedUserId] = useState<string | null>(null);
 
   // Single creation form state
   const [singleRole, setSingleRole] = useState<'student' | 'teacher'>('student');
@@ -98,6 +104,35 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
     setVisiblePasswords((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
+  const handleCopyCredentials = (u: UserProfile) => {
+    const id = u.studentId || u.teacherId || u.username;
+    const pass = u.password || 'password123';
+    navigator.clipboard.writeText(`รหัส: ${id} | รหัสผ่าน: ${pass}`);
+    setCopiedUserId(u.id);
+    playNotificationSound('chime');
+    setTimeout(() => setCopiedUserId(null), 2000);
+  };
+
+  const handleDeleteClick = (u: UserProfile) => {
+    if (u.username === 'pannawit' || u.id === currentUser.id) {
+      alert('ไม่สามารถลบบัญชีผู้ดูแลระบบหลัก (Master Admin: pannawit) หรือบัญชีที่กำลังเข้าสู่ระบบอยู่ได้');
+      return;
+    }
+    const idDisplay = u.studentId || u.teacherId || u.username;
+    if (confirm(`คุณต้องการลบบัญชี ${u.thaiName} (${idDisplay}) ออกจากระบบหรือไม่?`)) {
+      onDeleteUser(u.id);
+      playNotificationSound('alert');
+    }
+  };
+
+  const handleSaveEditUser = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingUser) return;
+    onUpdateUser(editingUser);
+    playNotificationSound('success');
+    setEditingUser(null);
+  };
+
   // Submit Single User
   const handleSingleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -132,7 +167,7 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
       classroom: singleClassroom,
       studentNumber: singleRole === 'student' ? Number(singleRollNumber) : undefined,
       gpax: singleRole === 'student' ? 3.50 : undefined,
-      avatarUrl: singleRole === 'student' ? studentMaleAvatar : teacherFemaleAvatar,
+      avatarUrl: artisticAvatars[Math.floor(Math.random() * artisticAvatars.length)].dataUrl,
       lineConnected: false,
       googleLinked: singleGoogleLinked,
       googleEmail: singleEmail.trim() || undefined,
@@ -180,7 +215,7 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
         classroom: bulkClassroom,
         studentNumber: rollNum,
         gpax: 3.50,
-        avatarUrl: i % 2 === 0 ? studentMaleAvatar : teacherFemaleAvatar,
+        avatarUrl: artisticAvatars[i % artisticAvatars.length].dataUrl,
         lineConnected: false,
         googleLinked: false,
         googleEmail: `std${currentId}@dontan.ac.th`,
@@ -224,7 +259,7 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
           classroom,
           studentNumber: !isTeacher ? rollNumber : undefined,
           gpax: 3.50,
-          avatarUrl: isTeacher ? teacherFemaleAvatar : studentMaleAvatar,
+          avatarUrl: artisticAvatars[idx % artisticAvatars.length].dataUrl,
           lineConnected: false,
           googleLinked: false,
           googleEmail: email,
@@ -536,6 +571,28 @@ T-2204, อ. สุรชัย มีโชค, กลุ่มสาระส�
                       <div className="flex items-center justify-end gap-1">
                         <button
                           type="button"
+                          onClick={() => handleCopyCredentials(u)}
+                          className="p-1.5 rounded-lg bg-black/[0.03] hover:bg-black/[0.08] text-[#1D1D1F] transition-colors"
+                          title="คัดลอกรหัสประจำตัวและรหัสผ่าน"
+                        >
+                          {copiedUserId === u.id ? (
+                            <Check className="w-3.5 h-3.5 text-emerald-600" />
+                          ) : (
+                            <Copy className="w-3.5 h-3.5 text-[#6E6E73]" />
+                          )}
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setEditingUser(u)}
+                          className="p-1.5 rounded-lg bg-black/[0.03] hover:bg-[#0071E3] hover:text-white text-[#6E6E73] transition-colors"
+                          title="แก้ไขข้อมูลบัญชีนี้"
+                        >
+                          <Edit3 className="w-3.5 h-3.5" />
+                        </button>
+
+                        <button
+                          type="button"
                           onClick={() => onImpersonateUser(u)}
                           className="px-2.5 py-1 rounded-lg bg-black/[0.04] hover:bg-[#0071E3] hover:text-white text-[11px] font-semibold text-[#1D1D1F] transition-colors flex items-center gap-1"
                           title="จำลองล็อกอินด้วยบัญชีนี้เพื่อทดสอบ"
@@ -544,14 +601,10 @@ T-2204, อ. สุรชัย มีโชค, กลุ่มสาระส�
                           <span>ล็อกอิน</span>
                         </button>
 
-                        {u.role !== 'admin' && (
+                        {u.username !== 'pannawit' && u.id !== currentUser.id && (
                           <button
                             type="button"
-                            onClick={() => {
-                              if (confirm(`คุณต้องการลบบัญชี ${u.thaiName} (${idDisplay}) ออกจากระบบหรือไม่?`)) {
-                                onDeleteUser(u.id);
-                              }
-                            }}
+                            onClick={() => handleDeleteClick(u)}
                             className="p-1 rounded-lg text-[#86868B] hover:text-[#DC2626] hover:bg-red-50 transition-colors"
                             title="ลบบัญชีผู้ใช้"
                           >
@@ -949,6 +1002,174 @@ T-2204, อ. สุรชัย มีโชค, กลุ่มสาระส�
                 <span>ยืนยันการสร้าง {bulkPreviewList.length} บัญชีเข้าสู่ระบบ</span>
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal 3: Edit User Modal (แก้ไขข้อมูลบัญชี & รีเซ็ตรหัสผ่าน) */}
+      {editingUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="bg-white rounded-3xl w-full max-w-lg border border-black/10 shadow-2xl p-6 sm:p-7 space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-black/[0.06] pb-3">
+              <div className="flex items-center gap-3">
+                <img
+                  src={editingUser.avatarUrl}
+                  alt={editingUser.thaiName}
+                  className="w-10 h-10 rounded-full object-cover border border-black/10 shadow-xs"
+                />
+                <div>
+                  <h3 className="text-base font-bold text-[#1D1D1F]">
+                    แก้ไขข้อมูลบัญชี ({editingUser.studentId || editingUser.teacherId || editingUser.username})
+                  </h3>
+                  <p className="text-xs text-[#6E6E73]">
+                    ปรับปรุงชื่อ, ห้องเรียน, รีเซ็ตรหัสผ่าน, หรือเปลี่ยนรูปศิลปะ
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditingUser(null)}
+                className="p-1 rounded-full text-[#86868B] hover:text-[#1D1D1F]"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEditUser} className="space-y-3.5 text-xs">
+              {/* Choose Origami Avatar for this user */}
+              <div>
+                <label className="block font-semibold text-[#1D1D1F] mb-1.5">
+                  เลือกรูปศิลปะ Origami ประจำตัว:
+                </label>
+                <div className="grid grid-cols-5 gap-2 p-2 bg-slate-900 rounded-2xl max-h-32 overflow-y-auto">
+                  {artisticAvatars.slice(0, 15).map((av) => (
+                    <button
+                      key={av.id}
+                      type="button"
+                      onClick={() => setEditingUser({ ...editingUser, avatarUrl: av.dataUrl })}
+                      className={`p-1 rounded-xl transition-transform ${
+                        editingUser.avatarUrl === av.dataUrl ? 'ring-2 ring-[#0071E3] scale-105' : 'hover:scale-105'
+                      }`}
+                    >
+                      <img src={av.dataUrl} alt={av.name} className="w-9 h-9 rounded-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Name Fields */}
+              <div className="space-y-1">
+                <label className="font-semibold text-[#1D1D1F]">ชื่อ-นามสกุล (ภาษาไทย):</label>
+                <input
+                  type="text"
+                  required
+                  value={editingUser.thaiName}
+                  onChange={(e) => setEditingUser({ ...editingUser, thaiName: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl bg-black/[0.02] border border-black/10 focus:border-[#0071E3] outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="font-semibold text-[#1D1D1F]">ชื่อ-สกุล (English):</label>
+                  <input
+                    type="text"
+                    value={editingUser.name}
+                    onChange={(e) => setEditingUser({ ...editingUser, name: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl bg-black/[0.02] border border-black/10 focus:border-[#0071E3] outline-none"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="font-semibold text-[#1D1D1F]">ชื่อเล่น (Nickname):</label>
+                  <input
+                    type="text"
+                    value={editingUser.nickname || ''}
+                    onChange={(e) => setEditingUser({ ...editingUser, nickname: e.target.value })}
+                    placeholder="เช่น เมธ"
+                    className="w-full px-3 py-2 rounded-xl bg-black/[0.02] border border-black/10 focus:border-[#0071E3] outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Classroom & Roll number */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="font-semibold text-[#1D1D1F]">ห้องเรียน / กลุ่มสาระ:</label>
+                  <input
+                    type="text"
+                    required
+                    value={editingUser.classroom}
+                    onChange={(e) => setEditingUser({ ...editingUser, classroom: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl bg-black/[0.02] border border-black/10 focus:border-[#0071E3] outline-none"
+                  />
+                </div>
+                {editingUser.role === 'student' && (
+                  <div className="space-y-1">
+                    <label className="font-semibold text-[#1D1D1F]">เลขที่ (Roll No.):</label>
+                    <input
+                      type="number"
+                      value={editingUser.studentNumber || 1}
+                      onChange={(e) => setEditingUser({ ...editingUser, studentNumber: Number(e.target.value) })}
+                      className="w-full px-3 py-2 rounded-xl bg-black/[0.02] border border-black/10 focus:border-[#0071E3] outline-none font-mono"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Password & Email */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="font-semibold text-[#1D1D1F]">รหัสผ่าน (Password):</label>
+                  <input
+                    type="text"
+                    required
+                    value={editingUser.password || ''}
+                    onChange={(e) => setEditingUser({ ...editingUser, password: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl bg-black/[0.02] border border-black/10 focus:border-[#0071E3] outline-none font-mono text-[#0071E3] font-bold"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="font-semibold text-[#1D1D1F]">อีเมล:</label>
+                  <input
+                    type="email"
+                    value={editingUser.googleEmail || editingUser.email || ''}
+                    onChange={(e) => setEditingUser({ ...editingUser, googleEmail: e.target.value, email: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl bg-black/[0.02] border border-black/10 focus:border-[#0071E3] outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Google Linked status */}
+              <label className="flex items-center gap-2 cursor-pointer pt-1">
+                <input
+                  type="checkbox"
+                  checked={editingUser.googleLinked}
+                  onChange={(e) => setEditingUser({ ...editingUser, googleLinked: e.target.checked })}
+                  className="w-4 h-4 rounded text-[#0071E3]"
+                />
+                <span className="text-[#6E6E73]">
+                  เปิดใช้งานการซิงค์บัญชี Google (ล็อกอินผ่าน Google Account ได้ทันที)
+                </span>
+              </label>
+
+              {/* Action buttons */}
+              <div className="pt-3 border-t border-black/[0.06] flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={() => setEditingUser(null)}
+                  className="px-4 py-2 rounded-xl text-xs text-[#6E6E73] hover:text-[#1D1D1F]"
+                >
+                  ยกเลิก
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 rounded-xl bg-[#0071E3] hover:bg-[#005bb5] text-white font-semibold shadow-xs flex items-center gap-1.5 transition-all"
+                >
+                  <Check className="w-4 h-4" />
+                  <span>บันทึกการแก้ไขบัญชี</span>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
