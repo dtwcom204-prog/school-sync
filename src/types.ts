@@ -5,6 +5,7 @@ export interface UserProfile {
   studentId?: string;
   teacherId?: string;
   username?: string;
+  password?: string;
   name: string;
   thaiName: string;
   role: UserRole;
@@ -15,9 +16,27 @@ export interface UserProfile {
   avatarUrl: string;
   lineConnected: boolean;
   lineNotifyToken?: string;
+  lineId?: string;
+  phone?: string;
+  email?: string;
+  nickname?: string;
+  bio?: string;
   googleLinked: boolean;
   googleEmail?: string;
   googleName?: string;
+  createdAt?: string;
+  status?: 'active' | 'suspended';
+}
+
+export interface BulkAccountRow {
+  identifier: string; // studentId or teacherId
+  thaiName: string;
+  englishName?: string;
+  role: 'student' | 'teacher';
+  classroom: string;
+  studentNumber?: number;
+  password?: string;
+  email?: string;
 }
 
 export interface SiteSettings {

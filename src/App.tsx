@@ -20,7 +20,8 @@ import {
   initialAnnouncements, 
   initialSubjectGrades, 
   initialLineAlerts,
-  initialSiteSettings 
+  initialSiteSettings,
+  initialSystemUsers 
 } from './data/mockData';
 import { Navbar } from './components/Navbar';
 import { LoginView } from './components/LoginView';
@@ -32,13 +33,15 @@ import { LineNotificationView } from './components/LineNotificationView';
 import { TimetableView } from './components/TimetableView';
 import { NewsView } from './components/NewsView';
 import { SiteSettingsView } from './components/SiteSettingsView';
+import { UserManagementView } from './components/UserManagementView';
 import { SearchModal } from './components/SearchModal';
 import { AdvisorChatModal } from './components/QuickActionModals';
+import { EditProfileModal } from './components/EditProfileModal';
 import { playNotificationSound } from './utils/sound';
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(true);
-  const [currentUser, setCurrentUser] = useState<UserProfile>(defaultStudent);
+  const [currentUser, setCurrentUser] = useState<UserProfile>(defaultAdmin);
   const [activeTab, setActiveTab] = useState<string>('overview');
 
   // Core Data States
@@ -47,10 +50,12 @@ export default function App() {
   const [grades, setGrades] = useState(initialSubjectGrades);
   const [announcements, setAnnouncements] = useState(initialAnnouncements);
   const [siteSettings, setSiteSettings] = useState<SiteSettings>(initialSiteSettings);
+  const [systemUsers, setSystemUsers] = useState<UserProfile[]>(initialSystemUsers);
 
-  // Global search modal
+  // Global modals
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isAdvisorChatOpen, setIsAdvisorChatOpen] = useState(false);
+  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
 
   // Keyboard shortcut ⌘K or Ctrl+K for search
   useEffect(() => {
@@ -67,18 +72,88 @@ export default function App() {
   const unreadAlertsCount = alerts.filter((a) => !a.read).length;
 
   const handleLogin = (role: UserRole, identifier: string, isAdmin?: boolean) => {
-    if (isAdmin || role === 'admin' || identifier === 'pannawit') {
+    // Match against created accounts in systemUsers
+    const trimmed = identifier.trim();
+    const matched = systemUsers.find(
+      (u) =>
+        (u.studentId && u.studentId === trimmed) ||
+        (u.teacherId && u.teacherId.toLowerCase() === trimmed.toLowerCase()) ||
+        (u.username && u.username.toLowerCase() === trimmed.toLowerCase())
+    );
+
+    if (matched) {
+      setCurrentUser(matched);
+      setIsLoggedIn(true);
+      setActiveTab('overview');
+      return;
+    }
+
+    if (isAdmin || role === 'admin' || trimmed === 'pannawit') {
       setCurrentUser(defaultAdmin);
     } else if (role === 'teacher') {
       setCurrentUser(defaultTeacher);
     } else {
       setCurrentUser({
         ...defaultStudent,
-        studentId: identifier || '54892'
+        studentId: trimmed || '54892'
       });
     }
     setIsLoggedIn(true);
     setActiveTab('overview');
+  };
+
+  const handleCreateSingleUser = (newUser: UserProfile) => {
+    setSystemUsers((prev) => [newUser, ...prev]);
+    const newAlert: LineAlertMessage = {
+      id: `alert-usr-${Date.now()}`,
+      title: `👤 สร้างบัญชีผู้ใช้ใหม่สำเร็จ: ${newUser.thaiName}`,
+      body: `สร้างบัญชีสำหรับ ${newUser.role === 'teacher' ? 'ครูผู้สอน' : 'นักเรียน'} รหัส ${newUser.studentId || newUser.teacherId} เรียบร้อย`,
+      type: 'assignment',
+      timestamp: 'เมื่อสักครู่',
+      read: false
+    };
+    setAlerts((prev) => [newAlert, ...prev]);
+  };
+
+  const handleCreateBulkUsers = (newUsers: UserProfile[]) => {
+    setSystemUsers((prev) => [...newUsers, ...prev]);
+    const newAlert: LineAlertMessage = {
+      id: `alert-bulk-${Date.now()}`,
+      title: `👥 นำเข้าบัญชีแบบกลุ่มสำเร็จ (${newUsers.length} บัญชี)`,
+      body: `สร้างบัญชีนักเรียน/ครูเข้าสู่ระบบเรียบร้อย สามารถส่งออกข้อมูล CSV หรือให้นักเรียนล็อกอินได้ทันที`,
+      type: 'assignment',
+      timestamp: 'เมื่อสักครู่',
+      read: false
+    };
+    setAlerts((prev) => [newAlert, ...prev]);
+  };
+
+  const handleDeleteUser = (userId: string) => {
+    setSystemUsers((prev) => prev.filter((u) => u.id !== userId));
+  };
+
+  const handleImpersonateUser = (user: UserProfile) => {
+    setCurrentUser(user);
+    setActiveTab('overview');
+    if (siteSettings.enableSound) {
+      playNotificationSound('chime');
+    }
+  };
+
+  const handleSaveProfile = (updatedUser: UserProfile) => {
+    setCurrentUser(updatedUser);
+    setSystemUsers((prev) =>
+      prev.map((u) => (u.id === updatedUser.id ? updatedUser : u))
+    );
+    const newAlert: LineAlertMessage = {
+      id: `alert-profile-${Date.now()}`,
+      title: '👤 อัปเดตข้อมูลโปรไฟล์ส่วนตัวสำเร็จ',
+      body: `บันทึกข้อมูลชื่อ, รูปประจำตัว, และการติดต่อของ ${updatedUser.thaiName} เรียบร้อยแล้ว`,
+      type: 'assignment',
+      timestamp: 'เมื่อสักครู่',
+      read: false
+    };
+    setAlerts((prev) => [newAlert, ...prev]);
   };
 
   const handleGoogleLogin = () => {
@@ -307,6 +382,7 @@ export default function App() {
         onLogout={handleLogout}
         unreadCount={unreadAlertsCount}
         onOpenSearch={() => setIsSearchOpen(true)}
+        onOpenEditProfile={() => setIsEditProfileOpen(true)}
       />
 
       {/* Main View Container (pb-20 on mobile for thumb dock bar clearance) */}
@@ -322,6 +398,7 @@ export default function App() {
             onSubmitAssignment={(id, text, imgs) =>
               handleSubmitAssignment(id, text, imgs)
             }
+            onOpenEditProfile={() => setIsEditProfileOpen(true)}
           />
         )}
 
@@ -366,12 +443,24 @@ export default function App() {
 
         {activeTab === 'news' && <NewsView announcements={announcements} />}
 
+        {activeTab === 'users' && (
+          <UserManagementView
+            currentUser={currentUser}
+            users={systemUsers}
+            onCreateSingleUser={handleCreateSingleUser}
+            onCreateBulkUsers={handleCreateBulkUsers}
+            onDeleteUser={handleDeleteUser}
+            onImpersonateUser={handleImpersonateUser}
+          />
+        )}
+
         {activeTab === 'settings' && (
           <SiteSettingsView
             currentUser={currentUser}
             settings={siteSettings}
             onUpdateSettings={handleUpdateSiteSettings}
             onToggleGoogleSync={handleToggleGoogleSync}
+            onNavigateToUserManagement={() => setActiveTab('users')}
           />
         )}
       </main>
@@ -427,6 +516,14 @@ export default function App() {
         isOpen={isAdvisorChatOpen}
         onClose={() => setIsAdvisorChatOpen(false)}
         currentUser={currentUser}
+      />
+
+      {/* Edit Profile Modal */}
+      <EditProfileModal
+        isOpen={isEditProfileOpen}
+        onClose={() => setIsEditProfileOpen(false)}
+        currentUser={currentUser}
+        onSaveProfile={handleSaveProfile}
       />
     </div>
   );

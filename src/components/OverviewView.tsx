@@ -14,7 +14,8 @@ import {
   ArrowRight,
   Sparkles,
   ExternalLink,
-  BookOpen
+  BookOpen,
+  Edit3
 } from 'lucide-react';
 import { 
   QuickSubmitModal, 
@@ -31,6 +32,7 @@ interface OverviewViewProps {
   onNavigateToGrades: () => void;
   onNavigateToTimetable: () => void;
   onSubmitAssignment: (id: string, textAnswer: string, images: any[]) => void;
+  onOpenEditProfile?: () => void;
 }
 
 export const OverviewView: React.FC<OverviewViewProps> = ({
@@ -41,6 +43,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
   onNavigateToGrades,
   onNavigateToTimetable,
   onSubmitAssignment,
+  onOpenEditProfile,
 }) => {
   const [filterScope, setFilterScope] = useState<'school' | 'grade5' | 'room51'>('room51');
   const [isQuickSubmitOpen, setIsQuickSubmitOpen] = useState(false);
@@ -100,6 +103,61 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
             ห้องเรียน ม.5/1
           </button>
         </div>
+      </div>
+
+      {/* User Greeting & Profile Quick Card */}
+      <div className="bg-white rounded-3xl p-4 sm:p-5 border border-black/[0.06] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3.5">
+          <div className="relative shrink-0">
+            <img
+              src={currentUser.avatarUrl}
+              alt={currentUser.thaiName}
+              referrerPolicy="no-referrer"
+              className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl object-cover border border-black/10 shadow-xs"
+            />
+            {currentUser.googleLinked && (
+              <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center text-[9px] text-white font-bold" title="ซิงค์ Google แล้ว">
+                ✓
+              </span>
+            )}
+          </div>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h2 className="text-base sm:text-lg font-bold text-[#1D1D1F]">
+                ยินดีต้อนรับ, {currentUser.thaiName}
+              </h2>
+              {currentUser.nickname && (
+                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-[#0071E3] border border-blue-100">
+                  ({currentUser.nickname})
+                </span>
+              )}
+              <span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${
+                currentUser.role === 'admin' 
+                  ? 'bg-purple-50 text-purple-800 border border-purple-200' 
+                  : currentUser.role === 'teacher' 
+                  ? 'bg-blue-50 text-blue-800 border border-blue-200' 
+                  : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+              }`}>
+                {currentUser.role === 'admin' ? 'แอดมินระบบ' : currentUser.role === 'teacher' ? 'ครูประจำวิชา' : `เลขที่ ${currentUser.studentNumber || 14}`}
+              </span>
+            </div>
+            <p className="text-xs text-[#6E6E73] mt-0.5 truncate">
+              {currentUser.schoolName} · {currentUser.classroom} 
+              {currentUser.bio ? ` · "${currentUser.bio}"` : ''}
+            </p>
+          </div>
+        </div>
+
+        {onOpenEditProfile && (
+          <button
+            type="button"
+            onClick={onOpenEditProfile}
+            className="px-4 py-2 rounded-xl bg-slate-50 hover:bg-[#0071E3] text-[#1D1D1F] hover:text-white border border-black/10 text-xs font-semibold shadow-xs flex items-center justify-center gap-1.5 transition-all self-stretch sm:self-auto shrink-0"
+          >
+            <Edit3 className="w-3.5 h-3.5" />
+            <span>ปรับแต่งโปรไฟล์</span>
+          </button>
+        )}
       </div>
 
       {/* Hero Announcement Card (matching Image 1 dark banner) */}

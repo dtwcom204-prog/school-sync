@@ -10,6 +10,7 @@ export { heroCampusImg, studentMaleAvatar, teacherFemaleAvatar, scienceFairBanne
 export const defaultStudent: UserProfile = {
   id: 'std-54892',
   studentId: '54892',
+  password: 'password123',
   name: 'Worameth Wiriyapanich',
   thaiName: 'วรเมธ วิริยพาณิชย์',
   role: 'student',
@@ -22,12 +23,15 @@ export const defaultStudent: UserProfile = {
   lineNotifyToken: 'LINE-TOKEN-DTT-54892',
   googleLinked: true,
   googleEmail: 'pp.usuk.mail@gmail.com',
-  googleName: 'Worameth (Google Workspace)'
+  googleName: 'Worameth (Google Workspace)',
+  createdAt: '2026-05-15 08:30',
+  status: 'active'
 };
 
 export const defaultTeacher: UserProfile = {
   id: 'tch-2201',
   teacherId: 'T-2201',
+  password: 'password123',
   name: 'Dr. Somboon Pornprasert',
   thaiName: 'ดร. สมบูรณ์ พรประเสริฐ',
   role: 'teacher',
@@ -38,12 +42,15 @@ export const defaultTeacher: UserProfile = {
   lineNotifyToken: 'LINE-TEACHER-TOKEN-883',
   googleLinked: false,
   googleEmail: 'somboon.p@dontan.ac.th',
-  googleName: 'Dr. Somboon P.'
+  googleName: 'Dr. Somboon P.',
+  createdAt: '2026-05-01 09:00',
+  status: 'active'
 };
 
 export const defaultAdmin: UserProfile = {
   id: 'adm-001',
   username: 'pannawit',
+  password: 'pp1234',
   name: 'Pannawit Usuk',
   thaiName: 'ปัณณวิชญ์ อุสุข (ผู้ดูแลระบบกลาง)',
   role: 'admin',
@@ -54,8 +61,84 @@ export const defaultAdmin: UserProfile = {
   lineNotifyToken: 'LINE-ADMIN-MASTER-TOKEN',
   googleLinked: true,
   googleEmail: 'pp.usuk.mail@gmail.com',
-  googleName: 'Pannawit Usuk'
+  googleName: 'Pannawit Usuk',
+  createdAt: '2026-04-20 10:00',
+  status: 'active'
 };
+
+export const initialSystemUsers: UserProfile[] = [
+  defaultAdmin,
+  defaultTeacher,
+  defaultStudent,
+  {
+    id: 'std-54893',
+    studentId: '54893',
+    password: 'password123',
+    name: 'Kittisak Prommin',
+    thaiName: 'นายกิตติศักดิ์ พรหมมินทร์',
+    role: 'student',
+    schoolName: 'โรงเรียนดอนตาลวิทยา',
+    classroom: 'ม.5/1 (1/2567)',
+    studentNumber: 15,
+    gpax: 3.72,
+    avatarUrl: studentMaleAvatar,
+    lineConnected: true,
+    googleLinked: false,
+    googleEmail: 'kittisak.p@dontan.ac.th',
+    createdAt: '2026-05-15 08:35',
+    status: 'active'
+  },
+  {
+    id: 'std-54894',
+    studentId: '54894',
+    password: 'password123',
+    name: 'Natthida Suwannasri',
+    thaiName: 'นางสาวณัฐธิดา สุวรรณศรี',
+    role: 'student',
+    schoolName: 'โรงเรียนดอนตาลวิทยา',
+    classroom: 'ม.5/1 (1/2567)',
+    studentNumber: 16,
+    gpax: 3.91,
+    avatarUrl: teacherFemaleAvatar,
+    lineConnected: false,
+    googleLinked: true,
+    googleEmail: 'natthida.s@gmail.com',
+    createdAt: '2026-05-15 08:40',
+    status: 'active'
+  },
+  {
+    id: 'tch-2202',
+    teacherId: 'T-2202',
+    password: 'password123',
+    name: 'Siriporn Hiranpong',
+    thaiName: 'อ. ศิริพร หิรัญพงศ์',
+    role: 'teacher',
+    schoolName: 'โรงเรียนดอนตาลวิทยา',
+    classroom: 'กลุ่มสาระคณิตศาสตร์ (ม.5/1, ม.5/2)',
+    avatarUrl: teacherFemaleAvatar,
+    lineConnected: true,
+    googleLinked: true,
+    googleEmail: 'siriporn.h@dontan.ac.th',
+    createdAt: '2026-05-01 09:30',
+    status: 'active'
+  },
+  {
+    id: 'tch-2203',
+    teacherId: 'T-2203',
+    password: 'password123',
+    name: 'Johnathan Miller',
+    thaiName: 'Teacher Johnathan Miller',
+    role: 'teacher',
+    schoolName: 'โรงเรียนดอนตาลวิทยา',
+    classroom: 'กลุ่มสาระภาษาต่างประเทศ (EP/IEP)',
+    avatarUrl: studentMaleAvatar,
+    lineConnected: false,
+    googleLinked: true,
+    googleEmail: 'johnathan.m@dontan.ac.th',
+    createdAt: '2026-05-01 10:00',
+    status: 'active'
+  }
+];
 
 export const initialSiteSettings: SiteSettings = {
   schoolName: 'โรงเรียนดอนตาลวิทยา',

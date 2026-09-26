@@ -19,7 +19,8 @@ import {
   Lock, 
   UserCheck,
   Check,
-  Sparkles
+  Sparkles,
+  ArrowRight
 } from 'lucide-react';
 
 interface SiteSettingsViewProps {
@@ -27,6 +28,7 @@ interface SiteSettingsViewProps {
   settings: SiteSettings;
   onUpdateSettings: (newSettings: SiteSettings) => void;
   onToggleGoogleSync: () => void;
+  onNavigateToUserManagement?: () => void;
 }
 
 export const SiteSettingsView: React.FC<SiteSettingsViewProps> = ({
@@ -34,6 +36,7 @@ export const SiteSettingsView: React.FC<SiteSettingsViewProps> = ({
   settings,
   onUpdateSettings,
   onToggleGoogleSync,
+  onNavigateToUserManagement,
 }) => {
   const [formData, setFormData] = useState<SiteSettings>(settings);
   const [savedSuccess, setSavedSuccess] = useState(false);
@@ -471,6 +474,23 @@ export const SiteSettingsView: React.FC<SiteSettingsViewProps> = ({
                   <p className="font-semibold text-purple-700">Master SuperAdmin (เข้าถึงทุกฟังก์ชัน)</p>
                 </div>
               </div>
+
+              {onNavigateToUserManagement && (
+                <div className="pt-3 border-t border-black/[0.06] flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-bold text-[#1D1D1F]">ระบบสร้างและจัดการบัญชีผู้ใช้:</p>
+                    <p className="text-[11px] text-[#6E6E73]">สร้างบัญชีนักเรียน-ครู ทั้งแบบเดี่ยวและทีละมากๆ</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={onNavigateToUserManagement}
+                    className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-all"
+                  >
+                    <span>เปิดหน้าระบบจัดการบัญชี</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Admin utilities */}
