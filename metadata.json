@@ -1,0 +1,6 @@
+{
+  "name": "SchoolSync OS - โรงเรียนดอนตาลวิทยา",
+  "description": "ระบบบันทึกงาน ส่งงาน สั่งงาน แดชบอร์ดสรุปงานรายวัน และระบบแจ้งเตือนผ่าน LINE สำหรับนักเรียนและครู โรงเรียนดอนตาลวิทยา",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
