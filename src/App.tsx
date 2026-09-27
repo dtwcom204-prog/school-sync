@@ -34,23 +34,57 @@ import { TimetableView } from './components/TimetableView';
 import { NewsView } from './components/NewsView';
 import { SiteSettingsView } from './components/SiteSettingsView';
 import { UserManagementView } from './components/UserManagementView';
+import { TeacherPortalView } from './components/TeacherPortalView';
+import { AdminPortalView } from './components/AdminPortalView';
 import { SearchModal } from './components/SearchModal';
 import { AdvisorChatModal } from './components/QuickActionModals';
 import { EditProfileModal } from './components/EditProfileModal';
 import { playNotificationSound } from './utils/sound';
+import { 
+  loadDatabase, 
+  saveDatabase, 
+  loadCurrentSessionUser, 
+  saveCurrentSessionUser,
+  exportDatabaseToFile,
+  importDatabaseFromString,
+  getInitialDatabase 
+} from './utils/database';
 
 export default function App() {
+  const initialDb = loadDatabase();
+  const savedUser = loadCurrentSessionUser();
+
   const [isLoggedIn, setIsLoggedIn] = useState(true);
-  const [currentUser, setCurrentUser] = useState<UserProfile>(defaultAdmin);
+  const [currentUser, setCurrentUser] = useState<UserProfile>(savedUser || defaultAdmin);
   const [activeTab, setActiveTab] = useState<string>('overview');
 
-  // Core Data States
-  const [assignments, setAssignments] = useState<Assignment[]>(initialAssignments);
-  const [alerts, setAlerts] = useState<LineAlertMessage[]>(initialLineAlerts);
-  const [grades, setGrades] = useState(initialSubjectGrades);
-  const [announcements, setAnnouncements] = useState(initialAnnouncements);
-  const [siteSettings, setSiteSettings] = useState<SiteSettings>(initialSiteSettings);
-  const [systemUsers, setSystemUsers] = useState<UserProfile[]>(initialSystemUsers);
+  // Core Data States loaded from persistent database
+  const [assignments, setAssignments] = useState<Assignment[]>(initialDb.assignments);
+  const [alerts, setAlerts] = useState<LineAlertMessage[]>(initialDb.alerts);
+  const [grades, setGrades] = useState(initialDb.grades);
+  const [announcements, setAnnouncements] = useState(initialDb.announcements);
+  const [siteSettings, setSiteSettings] = useState<SiteSettings>(initialDb.siteSettings);
+  const [systemUsers, setSystemUsers] = useState<UserProfile[]>(initialDb.users);
+
+  // Auto-sync persistent database whenever state changes
+  useEffect(() => {
+    saveDatabase({
+      version: '2.5.0',
+      lastUpdated: new Date().toISOString(),
+      schoolName: siteSettings.schoolName,
+      users: systemUsers,
+      assignments,
+      announcements,
+      grades,
+      alerts,
+      siteSettings,
+    });
+  }, [systemUsers, assignments, announcements, grades, alerts, siteSettings]);
+
+  // Auto-sync session user
+  useEffect(() => {
+    saveCurrentSessionUser(currentUser);
+  }, [currentUser]);
 
   // Global modals
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -130,6 +164,80 @@ export default function App() {
 
   const handleDeleteUser = (userId: string) => {
     setSystemUsers((prev) => prev.filter((u) => u.id !== userId));
+  };
+
+  const handleUpdateUser = (updatedUser: UserProfile) => {
+    setSystemUsers((prev) =>
+      prev.map((u) => (u.id === updatedUser.id ? updatedUser : u))
+    );
+    if (currentUser.id === updatedUser.id) {
+      setCurrentUser(updatedUser);
+    }
+  };
+
+  const handleSwitchToTeacherView = () => {
+    setCurrentUser(defaultTeacher);
+    setActiveTab('overview');
+    if (siteSettings.enableSound) playNotificationSound('chime');
+  };
+
+  const handleSwitchToStudentView = () => {
+    setCurrentUser(defaultStudent);
+    setActiveTab('overview');
+    if (siteSettings.enableSound) playNotificationSound('chime');
+  };
+
+  const handleSwitchToAdminView = () => {
+    setCurrentUser(defaultAdmin);
+    setActiveTab('overview');
+    if (siteSettings.enableSound) playNotificationSound('chime');
+  };
+
+  const handleExportDatabase = () => {
+    exportDatabaseToFile({
+      version: '2.5.0',
+      lastUpdated: new Date().toISOString(),
+      schoolName: siteSettings.schoolName,
+      users: systemUsers,
+      assignments,
+      announcements,
+      grades,
+      alerts,
+      siteSettings,
+    });
+    if (siteSettings.enableSound) playNotificationSound('success');
+  };
+
+  const handleImportDatabase = (jsonContent: string) => {
+    try {
+      const restored = importDatabaseFromString(jsonContent);
+      setSystemUsers(restored.users);
+      setAssignments(restored.assignments);
+      setAnnouncements(restored.announcements);
+      setGrades(restored.grades);
+      setAlerts(restored.alerts);
+      setSiteSettings(restored.siteSettings);
+      if (siteSettings.enableSound) playNotificationSound('success');
+      alert('นำเข้าฐานข้อมูลและอัปเดตระบบสำเร็จ 100%');
+    } catch (e: any) {
+      alert(e.message || 'ไฟล์ฐานข้อมูลไม่ถูกต้อง');
+    }
+  };
+
+  const handleResetDatabase = () => {
+    if (confirm('คุณต้องการรีเซ็ตฐานข้อมูลทั้งหมดกลับเป็นค่าเริ่มต้นโรงเรียนหรือไม่? ข้อมูลที่เพิ่มใหม่จะถูกแทนที่')) {
+      const defaults = getInitialDatabase();
+      saveDatabase(defaults);
+      setSystemUsers(defaults.users);
+      setAssignments(defaults.assignments);
+      setAnnouncements(defaults.announcements);
+      setGrades(defaults.grades);
+      setAlerts(defaults.alerts);
+      setSiteSettings(defaults.siteSettings);
+      setCurrentUser(defaultAdmin);
+      if (siteSettings.enableSound) playNotificationSound('alert');
+      alert('รีเซ็ตฐานข้อมูลเรียบร้อยแล้ว');
+    }
   };
 
   const handleImpersonateUser = (user: UserProfile) => {
@@ -388,18 +496,45 @@ export default function App() {
       {/* Main View Container (pb-20 on mobile for thumb dock bar clearance) */}
       <main className="flex-1 max-w-[1440px] w-full mx-auto px-3 sm:px-6 py-4 sm:py-8 pb-24 lg:pb-8">
         {activeTab === 'overview' && (
-          <OverviewView
-            currentUser={currentUser}
-            assignments={assignments}
-            announcements={announcements}
-            onNavigateToAssignments={() => setActiveTab('assignments')}
-            onNavigateToGrades={() => setActiveTab('grades')}
-            onNavigateToTimetable={() => setActiveTab('timetable')}
-            onSubmitAssignment={(id, text, imgs) =>
-              handleSubmitAssignment(id, text, imgs)
-            }
-            onOpenEditProfile={() => setIsEditProfileOpen(true)}
-          />
+          currentUser.role === 'admin' ? (
+            <AdminPortalView
+              currentUser={currentUser}
+              systemUsers={systemUsers}
+              siteSettings={siteSettings}
+              assignments={assignments}
+              onNavigateToUserManagement={() => setActiveTab('users')}
+              onNavigateToSettings={() => setActiveTab('settings')}
+              onNavigateToAssignments={() => setActiveTab('assignments')}
+              onSwitchToTeacherView={handleSwitchToTeacherView}
+              onSwitchToStudentView={handleSwitchToStudentView}
+              onUpdateSiteSettings={handleUpdateSiteSettings}
+              onExportDatabase={handleExportDatabase}
+              onImportDatabase={handleImportDatabase}
+            />
+          ) : currentUser.role === 'teacher' ? (
+            <TeacherPortalView
+              currentUser={currentUser}
+              assignments={assignments}
+              onAddAssignment={handleAddAssignment}
+              onGradeAssignment={handleGradeAssignment}
+              onBroadcastToClass={handleBroadcastToClass}
+              onNavigateToAssignments={() => setActiveTab('assignments')}
+              onNavigateToGrades={() => setActiveTab('grades')}
+            />
+          ) : (
+            <OverviewView
+              currentUser={currentUser}
+              assignments={assignments}
+              announcements={announcements}
+              onNavigateToAssignments={() => setActiveTab('assignments')}
+              onNavigateToGrades={() => setActiveTab('grades')}
+              onNavigateToTimetable={() => setActiveTab('timetable')}
+              onSubmitAssignment={(id, text, imgs) =>
+                handleSubmitAssignment(id, text, imgs)
+              }
+              onOpenEditProfile={() => setIsEditProfileOpen(true)}
+            />
+          )
         )}
 
         {activeTab === 'daily' && (
@@ -449,6 +584,7 @@ export default function App() {
             users={systemUsers}
             onCreateSingleUser={handleCreateSingleUser}
             onCreateBulkUsers={handleCreateBulkUsers}
+            onUpdateUser={handleUpdateUser}
             onDeleteUser={handleDeleteUser}
             onImpersonateUser={handleImpersonateUser}
           />
@@ -461,6 +597,11 @@ export default function App() {
             onUpdateSettings={handleUpdateSiteSettings}
             onToggleGoogleSync={handleToggleGoogleSync}
             onNavigateToUserManagement={() => setActiveTab('users')}
+            onExportDatabase={handleExportDatabase}
+            onImportDatabase={handleImportDatabase}
+            onResetDatabase={handleResetDatabase}
+            dbUserCount={systemUsers.length}
+            dbTaskCount={assignments.length}
           />
         )}
       </main>

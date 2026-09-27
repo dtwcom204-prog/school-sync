@@ -57,7 +57,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
   const [bio, setBio] = useState(currentUser.bio || 'มุ่งมั่นพัฒนาตนเอง สู้เพื่อเกรด 4 และอนาคตที่ดี 🎓');
   
   // Avatar states
-  const [selectedAvatar, setSelectedAvatar] = useState(currentUser.avatarUrl || studentMaleAvatar);
+  const [selectedAvatar, setSelectedAvatar] = useState(currentUser.avatarUrl || artisticAvatars[0].dataUrl);
   const [customAvatarUrl, setCustomAvatarUrl] = useState('');
   const [avatarPreviewError, setAvatarPreviewError] = useState(false);
 
@@ -138,7 +138,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
   const handleRemoveUploadedFile = () => {
     setUploadedFileName(null);
     setUploadedFileSize(null);
-    setSelectedAvatar(currentUser.avatarUrl || studentMaleAvatar);
+    setSelectedAvatar(currentUser.avatarUrl || artisticAvatars[0].dataUrl);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }

@@ -19,7 +19,9 @@ import {
   ChevronDown,
   User,
   Sparkles,
-  Edit3
+  Edit3,
+  ShieldCheck,
+  BookOpen
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -62,26 +64,50 @@ export const Navbar: React.FC<NavbarProps> = ({
     return () => document.removeEventListener('mousedown', handleOutsideClick);
   }, []);
 
-  // Primary navigation tabs (always visible on desktop)
-  const primaryNavItems = [
-    { id: 'overview', label: 'ภาพรวม', icon: Layers },
-    { id: 'daily', label: 'สรุปงานรายวัน', icon: Clock },
-    { 
-      id: 'assignments', 
-      label: currentUser.role === 'teacher' ? 'สั่ง & ตรวจงาน' : currentUser.role === 'admin' ? 'จัดการงาน' : 'ภาระงาน & ส่งงาน', 
-      icon: FileText 
-    },
-    { id: 'timetable', label: 'ตารางเรียน', icon: Calendar },
-    { id: 'grades', label: 'คะแนน & เกรด', icon: BarChart3 },
-  ];
+  // Primary navigation tabs based on user role
+  const primaryNavItems = currentUser.role === 'admin'
+    ? [
+        { id: 'overview', label: 'ภาพรวมระบบ รร.', icon: ShieldCheck },
+        { id: 'users', label: 'จัดการผู้ใช้ทั้งหมด', icon: Users },
+        { id: 'assignments', label: 'ภาระงานทั้ง รร.', icon: FileText },
+        { id: 'timetable', label: 'หลักสูตร & ตาราง', icon: Calendar },
+        { id: 'settings', label: 'ตั้งค่าระบบ', icon: Settings },
+      ]
+    : currentUser.role === 'teacher'
+    ? [
+        { id: 'overview', label: 'ห้องเรียนที่สอน', icon: BookOpen },
+        { id: 'assignments', label: 'สั่ง & ตรวจงาน', icon: FileText },
+        { id: 'timetable', label: 'ตารางสอน', icon: Calendar },
+        { id: 'grades', label: 'สมุดคะแนน', icon: BarChart3 },
+        { id: 'daily', label: 'สรุปงานรายวัน', icon: Clock },
+      ]
+    : [
+        { id: 'overview', label: 'ภาพรวม', icon: Layers },
+        { id: 'daily', label: 'สรุปงานรายวัน', icon: Clock },
+        { id: 'assignments', label: 'ภาระงาน & ส่งงาน', icon: FileText },
+        { id: 'timetable', label: 'ตารางเรียน', icon: Calendar },
+        { id: 'grades', label: 'คะแนน & เกรด', icon: BarChart3 },
+      ];
 
   // Secondary navigation tabs (visible on ultra-wide screens or grouped in "More" menu)
-  const secondaryNavItems = [
-    { id: 'line', label: 'แจ้งเตือน LINE', icon: MessageSquareShare, hasBadge: unreadCount > 0 },
-    { id: 'news', label: 'บอร์ดข่าวสาร', icon: Newspaper },
-    ...(currentUser.role === 'admin' ? [{ id: 'users', label: 'จัดการบัญชี', icon: Users }] : []),
-    { id: 'settings', label: 'ตั้งค่าเว็บไซต์', icon: Settings },
-  ];
+  const secondaryNavItems = currentUser.role === 'admin'
+    ? [
+        { id: 'grades', label: 'ผลการเรียน รร.', icon: BarChart3 },
+        { id: 'line', label: 'แจ้งเตือน LINE', icon: MessageSquareShare, hasBadge: unreadCount > 0 },
+        { id: 'news', label: 'บอร์ดข่าวสาร', icon: Newspaper },
+        { id: 'daily', label: 'สถิติรายวัน', icon: Clock },
+      ]
+    : currentUser.role === 'teacher'
+    ? [
+        { id: 'line', label: 'แจ้งเตือน LINE', icon: MessageSquareShare, hasBadge: unreadCount > 0 },
+        { id: 'news', label: 'บอร์ดข่าวสาร', icon: Newspaper },
+        { id: 'settings', label: 'ตั้งค่าเว็บไซต์', icon: Settings },
+      ]
+    : [
+        { id: 'line', label: 'แจ้งเตือน LINE', icon: MessageSquareShare, hasBadge: unreadCount > 0 },
+        { id: 'news', label: 'บอร์ดข่าวสาร', icon: Newspaper },
+        { id: 'settings', label: 'ตั้งค่าเว็บไซต์', icon: Settings },
+      ];
 
   const allNavItems = [...primaryNavItems, ...secondaryNavItems];
 
